@@ -3,6 +3,20 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical" >
+    
+    <Button
+        android:id="@+id/startLog"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Start Loging"
+        android:onClick="startLog" />    
+        
+    <Button
+        android:id="@+id/stopLog"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Stop Loging"
+        android:onClick="stopLog" />  
 
     <TextView
         android:id="@+id/name"
