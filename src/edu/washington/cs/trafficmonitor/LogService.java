@@ -231,7 +231,16 @@ public class LogService extends Thread {
 				phone.put("rbytes", TrafficStats.getTotalRxBytes());
 			} catch (JSONException e) { e.printStackTrace(); }
 	        
-	        JSONObject log = null;
+	       
+	        String logstring = null;
+			try {
+				logstring = System.currentTimeMillis()+","+wifiSpeed+","+cellSpeed+","+phone.getString("mtpackets");
+			} catch (JSONException e2) {
+				// TODO Auto-generated catch block
+				e2.printStackTrace();
+			}
+			
+			JSONObject log = null;
 	        try {
 				log = new JSONObject("log: {'time': "+System.currentTimeMillis()+", 'phone': "+phone.toString()+", 'app': "+app.toString()+"}}");
 			} catch (JSONException e1) {
@@ -251,7 +260,8 @@ public class LogService extends Thread {
 	            FileOutputStream f = new FileOutputStream(file, true);
 	            PrintWriter pw = new PrintWriter(f);
 	            
-	            pw.println(log+",");
+	            //pw.println(log+",");
+	            pw.println(logstring);
 	            pw.flush();
 	            pw.close();
 	            f.close();
