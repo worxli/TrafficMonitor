@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -39,6 +40,7 @@ public class LogService extends Thread {
 		this.context = context;
 	}
 
+	@SuppressLint("NewApi")
 	@Override
 	public void run() {
 		
@@ -201,6 +203,22 @@ public class LogService extends Thread {
 	        */
 	        int cellSpeed = 0;//cellSignalStrengthGsm.getDbm();
 	        
+	        long apptpackets = TrafficStats.getUidTxPackets(this.uuid);
+	        long apptbytes = TrafficStats.getUidTxBytes(this.uuid);
+	        long apprpackets = TrafficStats.getUidRxPackets(this.uuid);
+	        long apprbytes = TrafficStats.getUidRxBytes(this.uuid);
+	        long tcpconn = 0;
+	        long udpconn = 0;
+	        
+	        long mtpackets = TrafficStats.getMobileTxPackets();
+	        long mtbytes = TrafficStats.getMobileTxBytes();
+	        long mrpackets = TrafficStats.getMobileRxPackets();
+	        long mrbytes = TrafficStats.getMobileRxBytes();
+	        long tpackets = TrafficStats.getTotalTxPackets();
+	        long tbytes = TrafficStats.getTotalTxBytes();
+	        long rpackets = TrafficStats.getTotalRxPackets();
+	        long rbytes = TrafficStats.getTotalRxBytes();
+	        
 	        //collect app data
 	        JSONObject app = new JSONObject();
 	        try {
@@ -214,8 +232,27 @@ public class LogService extends Thread {
 				//app.put("tcp", );
 				//app.put("udp", );
 			} catch (JSONException e) { e.printStackTrace(); }
-	        
-	        //collect phone data
+	       
+	        String logstring = System.currentTimeMillis()+","+
+	        					wifiSpeed+","+
+	        					cellSpeed+","+
+	        					apptpackets+","+
+	        					apptbytes+","+
+	        					apprpackets+","+
+	        					apprbytes+","+
+	        					tcpconn+","+
+	        					udpconn+","+
+	        					mtpackets+","+
+	        					mtbytes+","+
+	        					mrpackets+","+
+	        					mrbytes+","+
+	        					tpackets+","+
+	        					tbytes+","+
+	        					rpackets+","+
+	        					rbytes;
+	        					
+	        					
+			//collect phone data
 	        JSONObject phone = new JSONObject(); 
 	        try {
 				phone.put("wifi", wifiSpeed);
@@ -231,15 +268,7 @@ public class LogService extends Thread {
 				phone.put("rbytes", TrafficStats.getTotalRxBytes());
 			} catch (JSONException e) { e.printStackTrace(); }
 	        
-	       
-	        String logstring = null;
-			try {
-				logstring = System.currentTimeMillis()+","+wifiSpeed+","+cellSpeed+","+phone.getString("mtpackets");
-			} catch (JSONException e2) {
-				// TODO Auto-generated catch block
-				e2.printStackTrace();
-			}
-			
+	        
 			JSONObject log = null;
 	        try {
 				log = new JSONObject("log: {'time': "+System.currentTimeMillis()+", 'phone': "+phone.toString()+", 'app': "+app.toString()+"}}");
