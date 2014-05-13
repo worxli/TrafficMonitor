@@ -40,7 +40,6 @@ public class LogService extends Thread {
 		this.context = context;
 	}
 
-	@SuppressLint("NewApi")
 	@Override
 	public void run() {
 		
@@ -277,7 +276,8 @@ public class LogService extends Thread {
 				e1.printStackTrace();
 			}
 	        
-	        Log.d("json:", log.toString());
+	        //Log.d("json:", log.toString());
+	        Log.d("csv", logstring);
 	        
 	        //write log
 	        File root = android.os.Environment.getExternalStorageDirectory(); 
