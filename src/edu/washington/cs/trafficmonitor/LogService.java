@@ -8,6 +8,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -20,6 +21,9 @@ import android.net.TrafficStats;
 import android.net.wifi.WifiManager;
 import android.os.Environment;
 import android.os.IBinder;
+import android.telephony.CellInfoGsm;
+import android.telephony.CellSignalStrengthGsm;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 
 public class LogService extends Thread {
@@ -70,6 +74,7 @@ public class LogService extends Thread {
 	            String src[] = fields[1].split(":", 2);
 	            String dst[] = fields[2].split(":", 2);
 
+	            connection.type = "TCP";
 	            connection.src = getAddress(src[0]);
 	            connection.spt = String.valueOf(getInt16(src[1]));
 	            connection.dst = getAddress(dst[0]);
@@ -103,6 +108,7 @@ public class LogService extends Thread {
 	            String src[] = fields[1].split(":", 2);
 	            String dst[] = fields[2].split(":", 2);
 
+	            connection.type = "UDP";
 	            connection.src = getAddress(src[0]);
 	            connection.spt = String.valueOf(getInt16(src[1]));
 	            connection.dst = getAddress(dst[0]);
@@ -136,6 +142,7 @@ public class LogService extends Thread {
 	            String src[] = fields[1].split(":", 2);
 	            String dst[] = fields[2].split(":", 2);
 
+	            connection.type = "TCP6";
 	            connection.src = getAddress6(src[0]);
 	            connection.spt = String.valueOf(getInt16(src[1]));
 	            connection.dst = getAddress6(dst[0]);
@@ -170,6 +177,7 @@ public class LogService extends Thread {
 	            String src[] = fields[1].split(":", 2);
 	            String dst[] = fields[2].split(":", 2);
 
+	            connection.type = "UDP6";
 	            connection.src = getAddress6(src[0]);
 	            connection.spt = String.valueOf(getInt16(src[1]));
 	            connection.dst = getAddress6(dst[0]);
@@ -185,9 +193,12 @@ public class LogService extends Thread {
 	          Log.w("NetworkLog", e.toString(), e);
 	        }
 	        
+	        long timeStamp = System.currentTimeMillis();
+	        
+	        String connString = "";
 	        for (Connection connection : connections) {
-	        	String conn =  "{'uuid':"+connection.uid+", 'dpt':"+connection.dpt+", 'spt':"+connection.spt+", 'src':"+connection.src+"}";
-				Log.d("conn", conn);
+	        	connString =  connString+""+timeStamp+","+connection.type+","+connection.uid+","+connection.src+","+connection.spt+","+connection.dst+","+connection.dpt+"\n";
+				Log.d("conn", connString);
 			}
 	        
 	        //wifi strength
@@ -196,7 +207,7 @@ public class LogService extends Thread {
 	        
 	        //cell strength
 	        /*
-	        TelephonyManager telephonyManager = (TelephonyManager)this.getSystemService(Context.TELEPHONY_SERVICE);
+	        TelephonyManager telephonyManager = (TelephonyManager)context.getSystemService(Context.TELEPHONY_SERVICE);
 	        CellInfoGsm cellinfogsm = (CellInfoGsm)telephonyManager.getAllCellInfo().get(0);
 	        CellSignalStrengthGsm cellSignalStrengthGsm = cellinfogsm.getCellSignalStrength();
 	        */
@@ -232,7 +243,7 @@ public class LogService extends Thread {
 				//app.put("udp", );
 			} catch (JSONException e) { e.printStackTrace(); }
 	       
-	        String logstring = System.currentTimeMillis()+","+
+	        String logstring = timeStamp+","+
 	        					wifiSpeed+","+
 	        					cellSpeed+","+
 	        					apptpackets+","+
@@ -270,7 +281,7 @@ public class LogService extends Thread {
 	        
 			JSONObject log = null;
 	        try {
-				log = new JSONObject("log: {'time': "+System.currentTimeMillis()+", 'phone': "+phone.toString()+", 'app': "+app.toString()+"}}");
+				log = new JSONObject("{log: {'time': "+System.currentTimeMillis()+", 'phone': "+phone.toString()+", 'app': "+app.toString()+"}}");
 			} catch (JSONException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
@@ -283,10 +294,11 @@ public class LogService extends Thread {
 	        File root = android.os.Environment.getExternalStorageDirectory(); 
 	        File dir = new File (root.getAbsolutePath() + "/networklogs");
 	        dir.mkdirs();
-	        File file = new File(dir, "log.txt");
+	        File logs = new File(dir, "logs.txt");
+	        File conn = new File(dir, "connections.txt");
 	        
 	        try {
-	            FileOutputStream f = new FileOutputStream(file, true);
+	            FileOutputStream f = new FileOutputStream(logs, true);
 	            PrintWriter pw = new PrintWriter(f);
 	            
 	            //pw.println(log+",");
@@ -294,13 +306,21 @@ public class LogService extends Thread {
 	            pw.flush();
 	            pw.close();
 	            f.close();
-	        } catch (FileNotFoundException e) {
+	        } catch (Exception e) {
 	            e.printStackTrace();
-	            Log.i("TAG", "******* File not found. Did you" +
-	                    " add a WRITE_EXTERNAL_STORAGE permission to the   manifest?");
-	        } catch (IOException e) {
+	        }
+	        
+	        try {
+	            FileOutputStream f = new FileOutputStream(conn, true);
+	            PrintWriter pw = new PrintWriter(f);
+	            
+	            pw.println(connString);
+	            pw.flush();
+	            pw.close();
+	            f.close();
+	        } catch (Exception e) {
 	            e.printStackTrace();
-	        }   
+	        }
 		}
 		
 		try {
@@ -325,6 +345,8 @@ public class LogService extends Thread {
 	    String dst;
 	    String dpt;
 	    String uid;
+	    String type;
+	    String status;
 	  }
 
 	  final String states[] = { "ESTBLSH",   "SYNSENT",   "SYNRECV",   "FWAIT1",   "FWAIT2",   "TMEWAIT",
